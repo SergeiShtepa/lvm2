@@ -117,14 +117,16 @@ enum {
 	DM_DEVICE_MKNODES,
 
 	DM_DEVICE_LIST_VERSIONS,
-	
+
 	DM_DEVICE_TARGET_MSG,
 
 	DM_DEVICE_SET_GEOMETRY,
 
 	DM_DEVICE_ARM_POLL,
 
-	DM_DEVICE_GET_TARGET_VERSION
+	DM_DEVICE_GET_TARGET_VERSION,
+
+	DM_DEVICE_REMAP
 };
 
 /*
@@ -227,6 +229,8 @@ int dm_task_set_event_nr(struct dm_task *dmt, uint32_t event_nr);
 int dm_task_set_geometry(struct dm_task *dmt, const char *cylinders, const char *heads, const char *sectors, const char *start);
 int dm_task_set_message(struct dm_task *dmt, const char *message);
 int dm_task_set_sector(struct dm_task *dmt, uint64_t sector);
+int dm_task_set_remap_start(struct dm_task *dmt, const char *donor_device);
+int dm_task_set_remap_finish(struct dm_task *dmt);
 int dm_task_no_flush(struct dm_task *dmt);
 int dm_task_no_open_count(struct dm_task *dmt);
 int dm_task_skip_lockfs(struct dm_task *dmt);
@@ -544,7 +548,7 @@ int dm_message_supports_precise_timestamps(void);
 
 /*
  * Precise timetamps and histogram support.
- * 
+ *
  * Test for the presence of precise_timestamps and histogram support.
  */
 int dm_stats_driver_supports_precise(void);
@@ -3744,7 +3748,7 @@ int dm_udev_complete(uint32_t cookie);
 int dm_udev_wait(uint32_t cookie);
 
 /*
- * dm_dev_wait_immediate 
+ * dm_dev_wait_immediate
  * If *ready is 1 on return, the wait is complete.
  * If *ready is 0 on return, the wait is incomplete and either
  * this function or dm_udev_wait() must be called again.

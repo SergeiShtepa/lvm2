@@ -889,7 +889,7 @@ static int _display_info_cols(struct dm_task *dmt, struct dm_info *info)
 
 	if (!(_report_type & (DR_STATS | DR_STATS_META))) {
 		/*
-		 * If _selection_cmd is set we are applying -S to some other command, so suppress 
+		 * If _selection_cmd is set we are applying -S to some other command, so suppress
 		 * output and run that other command if the device matches the criteria.
 		 */
 		if (!dm_report_object_is_selected(_report, &obj, _selection_cmd ? 0 : 1, &selected))
@@ -1297,7 +1297,7 @@ static int _create_concise(const struct command *cmd, int argc, char **argv)
 			*n++ = *c++;
 
 			continue;
-		} 
+		}
 
 		/* Comma marking end of field? */
 		if (*c == ',' && f < 4) {
@@ -1312,7 +1312,7 @@ static int _create_concise(const struct command *cmd, int argc, char **argv)
 				c++;
 
 			continue;
-		} 
+		}
 
 		/* Comma marking end of a table line? */
 		if (*c == ',' && f >= 4) {
@@ -1320,7 +1320,7 @@ static int _create_concise(const struct command *cmd, int argc, char **argv)
 			*n++ = '\n', c++;
 
 			continue;
-		} 
+		}
 
 		/* Semi-colon marking end of device? */
 		if (*c == ';' || *(c + 1) == '\0') {
@@ -1381,7 +1381,7 @@ static int _create_concise(const struct command *cmd, int argc, char **argv)
 				c++;
 
 			continue;
-		} 
+		}
 
 		/* Normal character */
 		*n++ = *c++;
@@ -1631,6 +1631,56 @@ static int _splitname(CMD_ARGS)
 	r = dm_report_object(_report, &obj);
 	_destroy_split_name(obj.split_name);
 
+	return r;
+}
+
+static int _remap(CMD_ARGS)
+{
+	int r = 0;
+	struct dm_task *dmt;
+
+	if (!(dmt = dm_task_create(DM_DEVICE_REMAP)))
+		return_0;
+
+	if (argc < 1) {
+		log_error("Please provide remap command 'start' or 'finish'.");
+		goto out;
+	}
+	if (strcmp(argv[0], "start") == 0) {
+		if (argc < 3) {
+			log_error("Please provide a name for the acceptor dm device and donor device.");
+			goto out;
+		}
+
+		if (!_set_task_device(dmt, argv[1], 0))
+			goto_out;
+
+		if (!dm_task_set_remap_start(dmt, argv[2]))
+			goto_out;
+
+	} else if (strcmp(argv[0], "finish") == 0) {
+		if (argc < 2) {
+			log_error("Please provide a name for the acceptor dm device.");
+			goto out;
+		}
+
+		if (!_set_task_device(dmt, argv[1], 0))
+			goto_out;
+
+		if (!dm_task_set_remap_finish(dmt))
+			goto_out;
+	} else {
+		log_error("Invalid remap command. Supported only 'start' or 'finish'.");
+		goto out;
+	}
+
+	/* run the task */
+	if (!_task_run(dmt))
+		goto_out;
+
+	r = 1; /* success */
+out:
+	dm_task_destroy(dmt);
 	return r;
 }
 
@@ -2196,7 +2246,7 @@ static int _error_device(CMD_ARGS)
 		log_error("No device specified.");
 		return 0;
 	}
-		
+
 	size = _get_device_size(name);
 
 	if (!(dmt = dm_task_create(DM_DEVICE_RELOAD)))
@@ -6275,6 +6325,7 @@ static struct command _dmsetup_commands[] = {
 	{"version", "", 0, 0, 0, 0, _version},
 	{"setgeometry", "<device> <cyl> <head> <sect> <start>", 5, 5, 0, 0, _setgeometry},
 	{"splitname", "<device> [<subsystem>]", 1, 2, 0, 0, _splitname},
+	{"remap", "<start | finish> <acceptor dm device> [<donor device>]", 2, 3, 0, 0, _remap},
 	{NULL, NULL, 0, 0, 0, 0, NULL}
 };
 

@@ -50,6 +50,8 @@ struct dm_task {
 	union {
 		struct dm_ioctl *v4;
 	} dmi;
+	uint8_t *bin_data;
+	uint32_t bin_data_sz;
 	char *newname;
 	char *message;
 	char *geometry;

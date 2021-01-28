@@ -123,7 +123,9 @@ enum {
 
 	DM_DEVICE_ARM_POLL,
 
-	DM_DEVICE_GET_TARGET_VERSION
+	DM_DEVICE_GET_TARGET_VERSION,
+
+	DM_DEVICE_REMAP
 };
 
 /*
@@ -226,6 +228,8 @@ int dm_task_set_event_nr(struct dm_task *dmt, uint32_t event_nr);
 int dm_task_set_geometry(struct dm_task *dmt, const char *cylinders, const char *heads, const char *sectors, const char *start);
 int dm_task_set_message(struct dm_task *dmt, const char *message);
 int dm_task_set_sector(struct dm_task *dmt, uint64_t sector);
+int dm_task_set_remap_start(struct dm_task *dmt, const char *donor_device);
+int dm_task_set_remap_finish(struct dm_task *dmt);
 int dm_task_no_flush(struct dm_task *dmt);
 int dm_task_no_open_count(struct dm_task *dmt);
 int dm_task_skip_lockfs(struct dm_task *dmt);
