@@ -619,7 +619,7 @@ static int _dm_task_set_name_from_path(struct dm_task *dmt, const char *path,
 		/*
 		 * Found directly.
 		 * If supplied path points to same device as last component
-		 * under /dev/mapper, use that name directly.
+		 * under /dev/mapper, use that name directly.  
 		 */
 		if (dm_snprintf(buf, sizeof(buf), "%s/%s", _dm_dir, name) == -1) {
 			log_error("Couldn't create path for %s", name);
@@ -1371,7 +1371,7 @@ static int _set_dev_node_read_ahead(const char *dev_name,
 
 		if (current_read_ahead >= read_ahead) {
 			log_debug_activation("%s: retaining kernel read ahead of %" PRIu32
-				  " (requested %" PRIu32 ")",
+				  " (requested %" PRIu32 ")",           
 				  dev_name, current_read_ahead, read_ahead);
 			return 1;
 		}
@@ -2438,7 +2438,7 @@ static int _udev_notify_sem_inc(uint32_t cookie, int semid)
 		log_error("semid %d: sem_ctl GETVAL failed for "
 			  "cookie 0x%" PRIx32 ": %s",
 			  semid, cookie, strerror(errno));
-		return 0;
+		return 0;		
 	}
 
 	log_debug_activation("Udev cookie 0x%" PRIx32 " (semid %d) incremented to %d",
@@ -2642,8 +2642,6 @@ static const char *_task_type_disp(int type)
 		return "TARGET_MSG";
         case DM_DEVICE_SET_GEOMETRY:
 		return "SET_GEOMETRY";
-	case DM_DEVICE_REMAP:
-		return "REMAP";
 	}
 	return "unknown";
 }
@@ -2746,7 +2744,7 @@ static int _udev_wait(uint32_t cookie, int *nowait)
 			log_error("semid %d: sem_ctl GETVAL failed for "
 				  "cookie 0x%" PRIx32 ": %s",
 				  semid, cookie, strerror(errno));
-			return 0;
+			return 0;		
 		}
 
 		if (val > 1)

@@ -214,8 +214,6 @@ dm_task_set_name
 dm_task_set_newname
 dm_task_set_newuuid
 dm_task_set_read_ahead
-dm_task_set_remap_start
-dm_task_set_remap_finish
 dm_task_set_ro
 dm_task_set_sector
 dm_task_set_uid

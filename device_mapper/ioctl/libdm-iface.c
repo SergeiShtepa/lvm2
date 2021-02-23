@@ -37,8 +37,8 @@
 #endif
 
 /*
- * Ensure build compatibility.
- * The hard-coded versions here are the highest present
+ * Ensure build compatibility.  
+ * The hard-coded versions here are the highest present 
  * in the _cmd_data arrays.
  */
 
@@ -121,9 +121,6 @@ static struct cmd_data _cmd_data_v4[] = {
 #endif
 #ifdef DM_GET_TARGET_VERSION
 	{"target-version", DM_GET_TARGET_VERSION, {4, 41, 0}},
-#endif
-#ifdef DM_DEV_REMAP
-	{"remap", DM_DEV_REMAP,	 {4, 44, 0}},
 #endif
 };
 /* *INDENT-ON* */
@@ -454,7 +451,7 @@ static int _open_control(void)
 	 */
 	if (!_open_and_assign_control_fd(control))
 		goto_bad;
-
+	
 	if (!_create_dm_bitset(1)) {
 		log_error("Failed to set up list of device-mapper major numbers");
 		return 0;
@@ -513,7 +510,6 @@ void dm_task_destroy(struct dm_task *dmt)
 	free(dmt->newname);
 	free(dmt->message);
 	free(dmt->geometry);
-	free(dmt->bin_data);
 	free(dmt->uuid);
 	free(dmt->mangled_uuid);
 	free(dmt);
@@ -571,7 +567,7 @@ static int _check_version(char *version, size_t size, int log_suppress)
 }
 
 /*
- * Find out device-mapper's major version number the first time
+ * Find out device-mapper's major version number the first time 
  * this is called and whether or not we support it.
  */
 int dm_check_version(void)
@@ -883,59 +879,6 @@ int dm_task_set_sector(struct dm_task *dmt, uint64_t sector)
 	return 1;
 }
 
-int dm_task_set_remap_start(struct dm_task *dmt, const char *donor_device)
-{
-	size_t len;
-	uint32_t param_sz;
-	struct dm_remap_param *param;
-
-	len = strlen(donor_device);
-	if (!len) {
-		log_error("Invalid donor device name");
-		return 0;
-	}
-
-	param_sz = sizeof(struct dm_remap_param) + len + 1;
-	param = malloc(param_sz);
-	if (!param) {
-		log_error("Insufficient memory");
-		return 0;
-	}
-
-	param->cmd = REMAP_START_CMD;
-	if (!strcpy((char*)(param->params), donor_device)) {
-		log_error("Failed to copy donor device name");
-
-		free(param);
-		return 0;
-	}
-
-	dmt->bin_data = (uint8_t *)param;
-	dmt->bin_data_sz = param_sz;
-
-	return 1;
-}
-
-int dm_task_set_remap_finish(struct dm_task *dmt)
-{
-	uint32_t param_sz;
-	struct dm_remap_param *param;
-
-	param_sz = sizeof(struct dm_remap_param);
-	param = malloc(param_sz);
-	if (!param) {
-		log_error("Insufficient memory");
-		return 0;
-	}
-
-	param->cmd = REMAP_FINISH_CMD;
-
-	dmt->bin_data = (uint8_t *)param;
-	dmt->bin_data_sz = param_sz;
-
-	return 1;
-}
-
 int dm_task_set_geometry(struct dm_task *dmt, const char *cylinders, const char *heads,
 			 const char *sectors, const char *start)
 {
@@ -1123,19 +1066,19 @@ static int _lookup_dev_name(uint64_t dev, char *buf, size_t len)
 	unsigned next = 0;
 	struct dm_task *dmt;
 	int r = 0;
-
+ 
 	if (!(dmt = dm_task_create(DM_DEVICE_LIST)))
 		return 0;
-
+ 
 	if (!dm_task_run(dmt))
 		goto out;
 
 	if (!(names = dm_task_get_names(dmt)))
 		goto out;
-
+ 
 	if (!names->dev)
 		goto out;
-
+ 
 	do {
 		names = (struct dm_names *)((char *) names + next);
 		if (names->dev == dev) {
@@ -1224,11 +1167,6 @@ static struct dm_ioctl *_flatten(struct dm_task *dmt, unsigned repeat_count)
 		return NULL;
 	}
 
-	if (dmt->bin_data && (dmt->geometry || dmt->message || dmt->newname)) {
-		log_error("binary data parameter are incompatible with geometry, message or newname");
-		return NULL;
-	}
-
 	if (dmt->newname)
 		len += strlen(dmt->newname) + 1;
 
@@ -1238,8 +1176,6 @@ static struct dm_ioctl *_flatten(struct dm_task *dmt, unsigned repeat_count)
 	if (dmt->geometry)
 		len += strlen(dmt->geometry) + 1;
 
-	if (dmt->bin_data)
-		len += dmt->bin_data_sz;
 	/*
 	 * Give len a minimum size so that we have space to store
 	 * dependencies or status information.
@@ -1352,19 +1288,14 @@ static struct dm_ioctl *_flatten(struct dm_task *dmt, unsigned repeat_count)
 	if (dmt->newname)
 		strcpy(b, dmt->newname);
 
-	else if (dmt->message) {
+	if (dmt->message) {
 		tmsg = (struct dm_target_msg *) b;
 		tmsg->sector = dmt->sector;
 		strcpy(tmsg->message, dmt->message);
-
-	} else if (dmt->geometry)
-		strcpy(b, dmt->geometry);
-
-	else if (dmt->bin_data) {
-		uint8_t *data = (uint8_t *)(dmi) + dmi->data_start;
-
-		memcpy(data, dmt->bin_data, dmt->bin_data_sz);
 	}
+
+	if (dmt->geometry)
+		strcpy(b, dmt->geometry);
 
 	return dmi;
 
@@ -1675,7 +1606,7 @@ static int _reload_with_suppression_v4(struct dm_task *dmt)
 		t1 = t1->next;
 		t2 = t2->next;
 	}
-
+	
 	if (!t1 && !t2) {
 		dmt->dmi.v4 = task->dmi.v4;
 		task->dmi.v4 = NULL;
@@ -1727,7 +1658,7 @@ static int _check_children_not_suspended_v4(struct dm_task *dmt, uint64_t device
 	task->event_nr = dmt->event_nr & DM_UDEV_FLAGS_MASK;
 	task->cookie_set = dmt->cookie_set;
 	task->add_node = dmt->add_node;
-
+	
 	if (!(r = dm_task_run(task)))
 		goto out;
 
@@ -1744,7 +1675,7 @@ static int _check_children_not_suspended_v4(struct dm_task *dmt, uint64_t device
 					     "(%u:%u)", info.major, info.minor);
 		else
 			log_error(INTERNAL_ERROR "Attempt to suspend device %s%s%s%.0d%s%.0d%s%s"
-				  "that uses already-suspended device (%u:%u)",
+				  "that uses already-suspended device (%u:%u)", 
 				  DEV_NAME(dmt) ? : "", DEV_UUID(dmt) ? : "",
 				  dmt->major > 0 ? "(" : "",
 				  dmt->major > 0 ? dmt->major : 0,
@@ -2186,7 +2117,7 @@ repeat_ioctl:
 					MAJOR(dmi->dev), MINOR(dmi->dev),
 					dmt->read_ahead, dmt->read_ahead_flags);
 		break;
-
+	
 	case DM_DEVICE_MKNODES:
 		if (dmi->flags & DM_EXISTS_FLAG)
 			add_dev_node(dmi->name, MAJOR(dmi->dev),
