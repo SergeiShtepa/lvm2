@@ -230,6 +230,7 @@ enum {
 	VERIFYUDEV_ARG,
 	VERSION_ARG,
 	YES_ARG,
+	INTERPOSED_DEV_ARG,
 	NUM_SWITCHES
 };
 
@@ -1113,6 +1114,9 @@ static int _load(CMD_ARGS)
 	if (_switches[CHECKS_ARG] && !dm_task_enable_checks(dmt))
 		goto_out;
 
+	if (_switches[INTERPOSED_DEV_ARG] && !dm_task_interposed_dev(dmt))
+		goto_out;
+
 	if (!_task_run(dmt))
 		goto_out;
 
@@ -1168,6 +1172,9 @@ static int _create_one_device(const char *name, const char *file)
 		goto_out;
 
 	if (_switches[INACTIVE_ARG] && !dm_task_query_inactive_table(dmt))
+		goto_out;
+
+	if (_switches[INTERPOSED_DEV_ARG] && !dm_task_interposed_dev(dmt))
 		goto_out;
 
 	if (_switches[READAHEAD_ARG] &&
@@ -6325,7 +6332,7 @@ static void _dmsetup_usage(FILE *out)
 		"        [-y|--yes] [--readahead {[+]<sectors>|auto|none}] [--retry]\n"
 		"        [-c|-C|--columns] [-o <fields>] [-O|--sort <sort_fields>]\n"
 		"        [-S|--select <selection>] [--nameprefixes] [--noheadings]\n"
-		"        [--separator <separator>]\n\n",
+		"        [--separator <separator>] [--interposed]\n\n",
 		_base_commands[_base_command].name);
 
 	for (i = 0; _dmsetup_commands[i].name; i++)
@@ -6904,6 +6911,7 @@ static int _process_switches(int *argcp, char ***argvp, const char *dev_dir)
 		{"yes", 0, &ind, YES_ARG},
 		{"addnodeonresume", 0, &ind, ADD_NODE_ON_RESUME_ARG},
 		{"addnodeoncreate", 0, &ind, ADD_NODE_ON_CREATE_ARG},
+		{"interposed", 0, &ind, INTERPOSED_DEV_ARG},
 		{0, 0, 0, 0}
 	};
 #else
@@ -7237,6 +7245,8 @@ static int _process_switches(int *argcp, char ***argvp, const char *dev_dir)
 			_switches[UNQUOTED_ARG]++;
 		if (ind == VERSION_ARG)
 			_switches[VERSION_ARG]++;
+		if (ind == INTERPOSED_DEV_ARG)
+			_switches[INTERPOSED_DEV_ARG]++;
 	}
 
 	if (_switches[VERBOSE_ARG] > 1) {

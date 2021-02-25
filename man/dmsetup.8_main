@@ -534,6 +534,11 @@ Do not allow udev to manage nodes for devices in device-mapper directory.
 Do not synchronise with udev when creating, renaming or removing devices.
 .
 .HP
+.BR --interposed
+.br
+Open underlying device without FMODE_EXCL and attach mapped device 'on fly'.
+.
+.HP
 .BR -o | --options
 .IR options
 .br

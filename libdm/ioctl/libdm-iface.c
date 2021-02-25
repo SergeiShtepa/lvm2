@@ -974,6 +974,13 @@ struct dm_timestamp *dm_task_get_ioctl_timestamp(struct dm_task *dmt)
 	return dmt->record_timestamp ? _dm_ioctl_timestamp : NULL;
 }
 
+int dm_task_interposed_dev(struct dm_task *dmt)
+{
+	dmt->interposed_dev = 1;
+
+	return 1;
+}
+
 struct target *create_target(uint64_t start, uint64_t len, const char *type,
 			     const char *params)
 {
@@ -1285,6 +1292,8 @@ static struct dm_ioctl *_flatten(struct dm_task *dmt, unsigned repeat_count)
 		}
 		dmi->flags |= DM_UUID_FLAG;
 	}
+	if (dmt->interposed_dev)
+		dmi->flags |= DM_INTERPOSED_DEV_FLAG;
 
 	dmi->target_count = count;
 	dmi->event_nr = dmt->event_nr;
@@ -1486,6 +1495,7 @@ static int _create_and_load_v4(struct dm_task *dmt)
 	task->head = dmt->head;
 	task->tail = dmt->tail;
 	task->secure_data = dmt->secure_data;
+	task->interposed_dev = dmt->interposed_dev;
 
 	r = dm_task_run(task);
 
@@ -1874,7 +1884,7 @@ static struct dm_ioctl *_do_dm_ioctl(struct dm_task *dmt, unsigned command,
 	}
 
 	log_debug_activation("dm %s %s%s %s%s%s %s%.0d%s%.0d%s"
-			     "%s[ %s%s%s%s%s%s%s%s%s] %.0" PRIu64 " %s [%u] (*%u)",
+			     "%s[ %s%s%s%s%s%s%s%s%s%s] %.0" PRIu64 " %s [%u] (*%u)",
 			     _cmd_data_v4[dmt->type].name,
 			     dmt->new_uuid ? "UUID " : "",
 			     dmi->name, dmi->uuid, dmt->newname ? " " : "",
@@ -1894,6 +1904,7 @@ static struct dm_ioctl *_do_dm_ioctl(struct dm_task *dmt, unsigned command,
 			     dmt->secure_data ? "securedata " : "",
 			     dmt->query_inactive_table ? "inactive " : "",
 			     dmt->enable_checks ? "enablechecks " : "",
+			     dmt->interposed_dev ? "interposed " : "",
 			     dmt->sector, _sanitise_message(dmt->message),
 			     dmi->data_size, retry_repeat_count);
 #ifdef DM_IOCTLS
