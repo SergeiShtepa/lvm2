@@ -1293,7 +1293,7 @@ static struct dm_ioctl *_flatten(struct dm_task *dmt, unsigned repeat_count)
 		dmi->flags |= DM_UUID_FLAG;
 	}
 	if (dmt->interposed_dev)
-		dmi->flags |= DM_INTERPOSED_DEV_FLAG;
+		dmi->flags |= DM_INTERPOSED_FLAG;
 
 	dmi->target_count = count;
 	dmi->event_nr = dmt->event_nr;
